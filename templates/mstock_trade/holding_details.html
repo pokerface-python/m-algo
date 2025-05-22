@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Holding Details: {{ holding.tradingsymbol }}</h2>
+    
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Basic Information</h5>
+                    <table class="table">
+                        <tr>
+                            <th>Symbol</th>
+                            <td>{{ holding.tradingsymbol }}</td>
+                        </tr>
+                        <tr>
+                            <th>ISIN</th>
+                            <td>{{ holding.isin }}</td>
+                        </tr>
+                        <tr>
+                            <th>Instrument Token</th>
+                            <td>{{ holding.instrument_token }}</td>
+                        </tr>
+                        <tr>
+                            <th>Exchange</th>
+                            <td>{{ holding.exchange|default:"N/A" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Product</th>
+                            <td>{{ holding.product|default:"N/A" }}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="col-md-6">
+                    <h5>Position Details</h5>
+                    <table class="table">
+                        <tr>
+                            <th>Quantity</th>
+                            <td>{{ holding.quantity }}</td>
+                        </tr>
+                        <tr>
+                            <th>Used Quantity</th>
+                            <td>{{ holding.used_quantity }}</td>
+                        </tr>
+                        <tr>
+                            <th>T1 Quantity</th>
+                            <td>{{ holding.t1_quantity }}</td>
+                        </tr>
+                        <tr>
+                            <th>Realised Quantity</th>
+                            <td>{{ holding.realised_quantity }}</td>
+                        </tr>
+                        <tr>
+                            <th>Opening Quantity</th>
+                            <td>{{ holding.opening_quantity }}</td>
+                        </tr>
+                        <tr>
+                            <th>Collateral Quantity</th>
+                            <td>{{ holding.collateral_quantity }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <h5>Price Information</h5>
+                    <table class="table">
+                        <tr>
+                            <th>Average Price</th>
+                            <td>₹{{ holding.average_price|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <th>Last Price</th>
+                            <td>₹{{ holding.last_price|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <th>Close Price</th>
+                            <td>₹{{ holding.close_price|floatformat:2 }}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="col-md-6">
+                    <h5>Performance</h5>
+                    <table class="table">
+                        <tr>
+                            <th>P&L</th>
+                            <td class="{% if holding.pnl > 0 %}text-success{% elif holding.pnl < 0 %}text-danger{% endif %}">
+                                ₹{{ holding.pnl|floatformat:2 }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Day Change</th>
+                            <td class="{% if holding.day_change > 0 %}text-success{% elif holding.day_change < 0 %}text-danger{% endif %}">
+                                ₹{{ holding.day_change|floatformat:2 }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Day Change %</th>
+                            <td class="{% if holding.day_change_percentage > 0 %}text-success{% elif holding.day_change_percentage < 0 %}text-danger{% endif %}">
+                                {{ holding.day_change_percentage|floatformat:2 }}%
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{% url 'mstock_trade:portfolio' %}" class="btn btn-secondary">Back to Portfolio</a>
+    </div>
+</div>
+{% endblock %} 

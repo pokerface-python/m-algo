@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Live Sensex Data</h2>
+            <div class="alert alert-info">
+                Real-time updates every 1 second
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <div id="sensex-data" class="text-center">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h4>LTP</h4>
+                                <div class="display-4" id="ltp">--</div>
+                            </div>
+                            <div class="col-md-4">
+                                <h4>Change</h4>
+                                <div class="display-4" id="change">--</div>
+                            </div>
+                            <div class="col-md-4">
+                                <h4>Timestamp</h4>
+                                <div class="text-muted" id="timestamp">--</div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <h5>Today's Range</h5>
+                                <table class="table">
+                                    <tr>
+                                        <th>High</th>
+                                        <td id="high">--</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Low</th>
+                                        <td id="low">--</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Previous Close</h5>
+                                <div class="display-5" id="close">--</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% block extra_js %}
+<script>
+    // Use ws_port if set by Django, otherwise use the browser's port
+    let wsPort = "{{ ws_port|default_if_none:'' }}";
+    if (!wsPort) {
+        wsPort = window.location.port;
+    }
+
+    const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+    const wsUrl = wsProtocol + '://' + window.location.hostname + ':' + wsPort + '/ws/sensex/';
+
+    const sensexSocket = new WebSocket(wsUrl);
+
+    sensexSocket.onopen = function(event) {
+        console.log('WebSocket connection established');
+    };
+
+    sensexSocket.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        updateSensexDisplay(data);
+    };
+
+    sensexSocket.onerror = function(error) {
+        console.error('WebSocket Error:', error);
+    };
+
+    sensexSocket.onclose = function(event) {
+        if (event.wasClean) {
+            console.log(`Connection closed cleanly, code=${event.code}, reason=${event.reason}`);
+        } else {
+            console.error('Connection abruptly closed');
+        }
+    };
+
+    function updateSensexDisplay(data) {
+        const formatter = new Intl.NumberFormat('en-IN', {
+            style: 'decimal',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+
+        document.getElementById('ltp').innerHTML =
+            `<span class="value">${formatter.format(data.ltp)}</span>`;
+
+        const changeElement = document.getElementById('change');
+        changeElement.innerHTML =
+            `<span class="${data.change >= 0 ? 'positive' : 'negative'}">${formatter.format(data.change)}</span>`;
+
+        const timestamp = new Date(data.timestamp * 1000);
+        document.getElementById('timestamp').textContent =
+            timestamp.toLocaleTimeString('en-IN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+
+        document.getElementById('high').textContent = formatter.format(data.high);
+        document.getElementById('low').textContent = formatter.format(data.low);
+        document.getElementById('close').textContent = formatter.format(data.close);
+    }
+</script>
+{% endblock %}
+
+{% endblock %}

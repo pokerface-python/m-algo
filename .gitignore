@@ -1,0 +1,36 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# OS generated files
+.DS_Store
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+.env
+
+# Django-specific
+*.sqlite3
+*.log
+local_settings.py
+
+# Editor files
+.vscode/
+.idea/
+
+# Python tooling
+.mypy_cache/
+.pytest_cache/
+.dmypy.json
+coverage.*
+*.cover
+htmlcov/
+.tox/
+.nox/
+
+# SpecStory
+.specstory/

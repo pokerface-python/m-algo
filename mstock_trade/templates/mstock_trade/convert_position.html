@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Convert Position</h2>
+    
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="trading_symbol">Select Position</label>
+                    <select class="form-control" id="trading_symbol" name="trading_symbol" required>
+                        <option value="">Select a position</option>
+                        {% for position in positions %}
+                        <option value="{{ position.trading_symbol }}" 
+                                data-exchange="{{ position.exchange }}"
+                                data-position-type="{{ position.position_type }}"
+                                data-quantity="{{ position.quantity }}"
+                                data-product="{{ position.product }}">
+                            {{ position.trading_symbol }} ({{ position.exchange }}) - {{ position.quantity }} qty
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <input type="hidden" name="exchange" id="exchange">
+                <input type="hidden" name="position_type" id="position_type">
+                <input type="hidden" name="quantity" id="quantity">
+                <input type="hidden" name="old_product" id="old_product">
+
+                <div class="form-group">
+                    <label for="new_product">New Product Type</label>
+                    <select class="form-control" id="new_product" name="new_product" required>
+                        <option value="">Select new product type</option>
+                        <option value="INTRADAY">Intraday</option>
+                        <option value="DELIVERY">Delivery</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="transaction_type">Transaction Type</label>
+                    <select class="form-control" id="transaction_type" name="transaction_type" required>
+                        <option value="">Select transaction type</option>
+                        <option value="BUY">Buy</option>
+                        <option value="SELL">Sell</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Convert Position</button>
+                <a href="{% url 'position_list' %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.getElementById('trading_symbol').addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    document.getElementById('exchange').value = selectedOption.dataset.exchange;
+    document.getElementById('position_type').value = selectedOption.dataset.positionType;
+    document.getElementById('quantity').value = selectedOption.dataset.quantity;
+    document.getElementById('old_product').value = selectedOption.dataset.product;
+});
+</script>
+{% endblock %}
+{% endblock %} 

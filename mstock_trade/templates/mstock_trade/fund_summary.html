@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Fund Summary</h2>
+                <a href="{% url 'market_quote' %}" class="btn btn-secondary">Back to Market Quotes</a>
+            </div>
+
+            {% if messages %}
+            <div class="messages mb-4">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if fund_summary %}
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4 class="mb-3">Cash Balance</h4>
+                            <table class="table table-bordered">
+                                <tr>
+                                    <th>Available Balance</th>
+                                    <td class="text-end">₹{{ fund_summary.0.AVAILABLE_BALANCE|floatformat:2 }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Clear Balance</th>
+                                    <td class="text-end">₹{{ fund_summary.0.CLEAR_BALANCE|floatformat:2 }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Unclear Balance</th>
+                                    <td class="text-end">₹{{ fund_summary.0.UNCLEAR_BALANCE|floatformat:2 }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h4 class="mb-3">Margin Information</h4>
+                            <table class="table table-bordered">
+                                <tr>
+                                    <th>Additional Margin</th>
+                                    <td class="text-end">₹{{ fund_summary.0.ADDITIONAL_MARGIN|floatformat:2 }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Adhoc Limit</th>
+                                    <td class="text-end">₹{{ fund_summary.0.ADHOC_LIMIT|floatformat:2 }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Amount Utilized</th>
+                                    <td class="text-end">₹{{ fund_summary.0.AMOUNT_UTILIZED|floatformat:2 }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h4 class="mb-3">Other Details</h4>
+                            <table class="table table-bordered">
+                                <tr>
+                                    <th>Bank Holding</th>
+                                    <td class="text-end">₹{{ fund_summary.0.BANK_HOLDING|floatformat:2 }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Collaterals</th>
+                                    <td class="text-end">₹{{ fund_summary.0.COLLATERALS|floatformat:2 }}</td>
+                                </tr>
+                                <tr>
+                                    <th>MTF Available Balance</th>
+                                    <td class="text-end">₹{{ fund_summary.0.MTF_AVAILABLE_BALANCE|floatformat:2 }}</td>
+                                </tr>
+                                <tr>
+                                    <th>MTF Collateral</th>
+                                    <td class="text-end">₹{{ fund_summary.0.MTF_COLLATERAL|floatformat:2 }}</td>
+                                </tr>
+                                <tr>
+                                    <th>MTF Utilize</th>
+                                    <td class="text-end">₹{{ fund_summary.0.MTF_UTILIZE|floatformat:2 }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Peak Margin</th>
+                                    <td class="text-end">₹{{ fund_summary.0.PEAK_MARGIN|floatformat:2 }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                No fund summary data available.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

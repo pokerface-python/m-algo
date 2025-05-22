@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h1 class="display-4 text-primary font-weight-bold mb-2">
+                <i class="fas fa-chart-line"></i> mStock Trading Platform
+            </h1>
+            <p class="lead mb-3">Your gateway to smart, fast, and reliable trading.</p>
+            <a href="{% url 'mstock_trade:access_info' %}" class="btn btn-info btn-lg mb-3">
+                <i class="fas fa-key me-2"></i>View Access Info
+            </a>
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} mt-2">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Market Data Section -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0"><i class="fas fa-chart-line me-2"></i>Market Data</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="{% url 'mstock_trade:market_quote' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-chart-line me-2"></i>Market Quotes
+                        </a>
+                        <a href="{% url 'mstock_trade:instrument_search' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-search me-2"></i>Instrument Search
+                        </a>
+                        <a href="{% url 'mstock_trade:option_chain' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-link me-2"></i>Option Chain
+                        </a>
+                        <a href="{% url 'mstock_trade:intraday_chart' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-chart-bar me-2"></i>Intraday Charts
+                        </a>
+                        <a href="{% url 'mstock_trade:gainers_losers' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-arrow-trend-up me-2"></i>Gainers & Losers
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trading Section -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0"><i class="fas fa-exchange-alt me-2"></i>Trading</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="{% url 'mstock_trade:place_order' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-plus-circle me-2"></i>Place Order
+                        </a>
+                        <a href="{% url 'mstock_trade:order_book' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-book me-2"></i>Order Book
+                        </a>
+                        <a href="{% url 'mstock_trade:trade_history' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-history me-2"></i>Trade History
+                        </a>
+                        <a href="{% url 'mstock_trade:position_list' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-list me-2"></i>Positions
+                        </a>
+                        <a href="{% url 'mstock_trade:convert_position' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-exchange-alt me-2"></i>Convert Position
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Portfolio Section -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0"><i class="fas fa-briefcase me-2"></i>Portfolio</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="{% url 'mstock_trade:portfolio' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-wallet me-2"></i>Portfolio Overview
+                        </a>
+                        <a href="{% url 'mstock_trade:fund_summary' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-coins me-2"></i>Fund Summary
+                        </a>
+                        <a href="{% url 'mstock_trade:dashboard' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                        </a>
+                        <a href="{% url 'mstock_trade:create_strategy' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-robot me-2"></i>Create Strategy
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instrument Master Section -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card shadow-sm h-100 border-0 bg-gradient-primary text-white">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="card-title mb-0"><i class="fas fa-database me-2"></i>Instrument Master</h5>
+                </div>
+                <div class="card-body">
+                    <p>Browse and search all instruments available on the platform.</p>
+                    <a href="{% url 'mstock_trade:instrument_list' %}" class="btn btn-light btn-block font-weight-bold">
+                        <i class="fas fa-search"></i> View Instruments
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-warning">
+                    <h5 class="card-title mb-0"><i class="fas fa-bolt"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'mstock_trade:cancel_all_orders' %}" class="btn btn-danger w-100">
+                                <i class="fas fa-times-circle me-2"></i>Cancel All Orders
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'mstock_trade:market_quote' %}" class="btn btn-primary w-100">
+                                <i class="fas fa-sync me-2"></i>Refresh Market Data
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'mstock_trade:sync_instruments' %}" class="btn btn-info w-100">
+                                <i class="fas fa-database me-2"></i>Sync Instruments
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'mstock_trade:portfolio' %}" class="btn btn-success w-100">
+                                <i class="fas fa-chart-pie me-2"></i>View Portfolio
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Font Awesome for icons if not already in base.html -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

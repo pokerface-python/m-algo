@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Place New Order</h2>
+    
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="trading_symbol">Trading Symbol</label>
+                            <input type="text" class="form-control" id="trading_symbol" name="trading_symbol" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="exchange">Exchange</label>
+                            <select class="form-control" id="exchange" name="exchange" required>
+                                <option value="NSE">NSE</option>
+                                <option value="BSE">BSE</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="transaction_type">Transaction Type</label>
+                            <select class="form-control" id="transaction_type" name="transaction_type" required>
+                                <option value="BUY">Buy</option>
+                                <option value="SELL">Sell</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="order_type">Order Type</label>
+                            <select class="form-control" id="order_type" name="order_type" required>
+                                <option value="MARKET">Market</option>
+                                <option value="LIMIT">Limit</option>
+                                <option value="SL">Stop Loss</option>
+                                <option value="SL-M">Stop Loss Market</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="quantity">Quantity</label>
+                            <input type="number" class="form-control" id="quantity" name="quantity" required min="1">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="product">Product</label>
+                            <select class="form-control" id="product" name="product" required>
+                                <option value="CNC">Cash & Carry</option>
+                                <option value="MIS">Intraday</option>
+                                <option value="NRML">Normal</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="price">Price</label>
+                            <input type="number" class="form-control" id="price" name="price" step="0.01">
+                            <small class="form-text text-muted">Required for Limit and Stop Loss orders</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="trigger_price">Trigger Price</label>
+                            <input type="number" class="form-control" id="trigger_price" name="trigger_price" step="0.01">
+                            <small class="form-text text-muted">Required for Stop Loss orders</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="validity">Validity</label>
+                            <select class="form-control" id="validity" name="validity">
+                                <option value="DAY">Day</option>
+                                <option value="IOC">Immediate or Cancel</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="disclosed_quantity">Disclosed Quantity</label>
+                            <input type="number" class="form-control" id="disclosed_quantity" name="disclosed_quantity" min="0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">Place Order</button>
+                    <a href="{% url 'order_book' %}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.getElementById('order_type').addEventListener('change', function() {
+    const priceInput = document.getElementById('price');
+    const triggerPriceInput = document.getElementById('trigger_price');
+    
+    if (this.value === 'MARKET') {
+        priceInput.required = false;
+        triggerPriceInput.required = false;
+    } else if (this.value === 'LIMIT') {
+        priceInput.required = true;
+        triggerPriceInput.required = false;
+    } else if (this.value === 'SL' || this.value === 'SL-M') {
+        priceInput.required = true;
+        triggerPriceInput.required = true;
+    }
+});
+</script>
+{% endblock %}
+{% endblock %} 

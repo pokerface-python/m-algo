@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Order Book</h2>
+        <div>
+            <a href="{% url 'place_order' %}" class="btn btn-primary">Place New Order</a>
+            <a href="{% url 'cancel_all_orders' %}" class="btn btn-danger" onclick="return confirm('Are you sure you want to cancel all orders?')">Cancel All Orders</a>
+        </div>
+    </div>
+    
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Symbol</th>
+                    <th>Exchange</th>
+                    <th>Type</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Product</th>
+                    <th>Status</th>
+                    <th>Timestamp</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ order.order_id }}</td>
+                    <td>{{ order.tradingsymbol }}</td>
+                    <td>{{ order.exchange }}</td>
+                    <td>{{ order.transaction_type }}</td>
+                    <td>{{ order.quantity }}</td>
+                    <td>₹{{ order.price }}</td>
+                    <td>{{ order.product }}</td>
+                    <td>
+                        <span class="badge {% if order.status == 'COMPLETE' %}bg-success{% elif order.status == 'REJECTED' %}bg-danger{% else %}bg-warning{% endif %}">
+                            {{ order.status }}
+                        </span>
+                    </td>
+                    <td>{{ order.order_timestamp }}</td>
+                    <td>
+                        {% if order.status == 'PENDING' %}
+                        <a href="{% url 'modify_order' order.order_id %}" class="btn btn-sm btn-warning">Modify</a>
+                        <a href="{% url 'cancel_order' order.order_id %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to cancel this order?')">Cancel</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="10" class="text-center">No orders found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %} 

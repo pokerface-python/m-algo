@@ -1,0 +1,97 @@
+{% load static %}
+{% load instrument_extras %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Instrument Master Data</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #ddd; }
+        th { cursor: pointer; }
+        .filter-label { margin-right: 10px; }
+        .pagination { margin-top: 20px; }
+        .pagination span, .pagination a { margin: 0 2px; padding: 4px 8px; text-decoration: none; border: 1px solid #ccc; }
+        .pagination .current { background: #007bff; color: #fff; }
+    </style>
+</head>
+<body>
+    <h2>Instrument Master Data</h2>
+    <form method="get" id="filter-form">
+        <label class="filter-label">Exchange:
+            <select name="exchange" onchange="document.getElementById('filter-form').submit();">
+                <option value="">All</option>
+                {% for ex in exchanges %}
+                    <option value="{{ ex }}" {% if request.GET.exchange == ex %}selected{% endif %}>{{ ex }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label class="filter-label">Segment:
+            <select name="segment" onchange="document.getElementById('filter-form').submit();">
+                <option value="">All</option>
+                {% for seg in segments %}
+                    <option value="{{ seg }}" {% if request.GET.segment == seg %}selected{% endif %}>{{ seg }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        
+        <label class="filter-label">Symbol:
+            <input type="text" name="symbol" value="{{ request.GET.symbol }}" placeholder="Search symbol"/>
+        </label>
+        <label class="filter-label">Lot Size:
+            <input type="text" name="lot_size" value="{{ request.GET.lot_size }}" placeholder="Search lot size"/>
+        </label>
+        <label class="filter-label">Option Type:
+            <select name="option_type" onchange="document.getElementById('filter-form').submit();">
+                <option value="" {% if not request.GET.option_type %}selected{% endif %}>All</option>
+                <option value="CE" {% if request.GET.option_type == "CE" %}selected{% endif %}>CE</option>
+                <option value="PE" {% if request.GET.option_type == "PE" %}selected{% endif %}>PE</option>
+            </select>
+        </label>        
+        <button type="submit">Search</button>
+    </form>
+    <br/>
+    <table>
+        <thead>
+            <tr>
+                {% for col in columns %}
+                    <th>
+                        <a href="?{% for key, value in request.GET.items %}{% if key != 'sort' and key != 'order' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}sort={{ col.0 }}&order={% if request.GET.sort == col.0 and request.GET.order != 'desc' %}desc{% else %}asc{% endif %}">
+                            {{ col.1 }}
+                            {% if request.GET.sort == col.0 %}
+                                {% if request.GET.order == 'desc' %}▼{% else %}▲{% endif %}
+                            {% endif %}
+                        </a>
+                    </th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for inst in page_obj %}
+            <tr>
+                {% for col in columns %}
+                    <td>{{ inst|getattr:col.0 }}</td>
+                {% endfor %}
+            </tr>
+            {% empty %}
+            <tr><td colspan="{{ columns|length }}">No instruments found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">Previous</a>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <span class="current">{{ num }}</span>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">Next</a>
+        {% endif %}
+    </div>
+</body>
+</html>

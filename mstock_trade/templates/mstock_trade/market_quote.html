@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>Market Quotes</h2>
+                <div>
+                    <a href="{% url 'mstock_trade:dashboard' %}" class="btn btn-secondary me-2">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                    <a href="{% url 'mstock_trade:home' %}" class="btn btn-primary">
+                        <i class="fas fa-home me-2"></i>Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="messages mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Select Instruments</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-8">
+                    <select name="instruments" id="instruments" class="form-select" multiple>
+                        {% for symbol, details in instrument_master.items %}
+                        <option value="{{ symbol }}" {% if symbol in instruments %}selected{% endif %}>
+                            {{ symbol }} - {{ details.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-2"></i>Get Quotes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Market Data</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Last Price</th>
+                            <th>Change</th>
+                            <th>% Change</th>
+                            <th>Open</th>
+                            <th>High</th>
+                            <th>Low</th>
+                            <th>Volume</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="market-data">
+                        {% for symbol, data in market_data.items %}
+                        <tr>
+                            <td>{{ symbol }}</td>
+                            <td>{{ data.last_price }}</td>
+                            <td class="{% if data.change > 0 %}text-success{% elif data.change < 0 %}text-danger{% endif %}">
+                                {{ data.change }}
+                            </td>
+                            <td class="{% if data.percent_change > 0 %}text-success{% elif data.percent_change < 0 %}text-danger{% endif %}">
+                                {{ data.percent_change }}%
+                            </td>
+                            <td>{{ data.ohlc.open }}</td>
+                            <td>{{ data.ohlc.high }}</td>
+                            <td>{{ data.ohlc.low }}</td>
+                            <td>{{ data.volume }}</td>
+                            <td>
+                                <a href="{% url 'mstock_trade:intraday_chart' %}?exchange={{ data.exchange }}&script_name={{ symbol }}" 
+                                   class="btn btn-sm btn-info">
+                                    <i class="fas fa-chart-line"></i>
+                                </a>
+                                <a href="{% url 'mstock_trade:option_chain' %}?token={{ data.instrument_token }}" 
+                                   class="btn btn-sm btn-primary">
+                                    <i class="fas fa-link"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Auto-refresh market data every 5 seconds
+    setInterval(function() {
+        const instruments = Array.from(document.getElementById('instruments').selectedOptions)
+            .map(option => option.value);
+        
+        if (instruments.length > 0) {
+            fetch(`{% url 'mstock_trade:market_quote_ajax' %}?instruments=${instruments.join(',')}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        const tbody = document.getElementById('market-data');
+                        tbody.innerHTML = '';
+                        
+                        for (const [symbol, quote] of Object.entries(data.data)) {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${symbol}</td>
+                                <td>${quote.last_price}</td>
+                                <td class="${quote.change > 0 ? 'text-success' : quote.change < 0 ? 'text-danger' : ''}">
+                                    ${quote.change}
+                                </td>
+                                <td class="${quote.percent_change > 0 ? 'text-success' : quote.percent_change < 0 ? 'text-danger' : ''}">
+                                    ${quote.percent_change}%
+                                </td>
+                                <td>${quote.ohlc.open}</td>
+                                <td>${quote.ohlc.high}</td>
+                                <td>${quote.ohlc.low}</td>
+                                <td>${quote.volume}</td>
+                                <td>
+                                    <a href="{% url 'mstock_trade:intraday_chart' %}?exchange=${quote.exchange}&script_name=${symbol}" 
+                                       class="btn btn-sm btn-info">
+                                        <i class="fas fa-chart-line"></i>
+                                    </a>
+                                    <a href="{% url 'mstock_trade:option_chain' %}?token=${quote.instrument_token}" 
+                                       class="btn btn-sm btn-primary">
+                                        <i class="fas fa-link"></i>
+                                    </a>
+                                </td>
+                            `;
+                            tbody.appendChild(row);
+                        }
+                    }
+                })
+                .catch(error => console.error('Error fetching market data:', error));
+        }
+    }, 5000);
+</script>
+{% endblock %}
+{% endblock %} 

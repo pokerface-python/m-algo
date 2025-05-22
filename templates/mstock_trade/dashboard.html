@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="display-4 text-primary font-weight-bold mb-4">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </h2>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <!-- Portfolio Card -->
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-success"><i class="fas fa-wallet"></i> Portfolio</h5>
+                    <p class="card-text">View your current holdings and portfolio performance.</p>
+                    <a href="{% url 'mstock_trade:portfolio' %}" class="btn btn-outline-success btn-block">View Portfolio</a>
+                </div>
+            </div>
+        </div>
+        <!-- Instrument Master Card -->
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm border-0 h-100 bg-gradient-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-database"></i> Instrument Master</h5>
+                    <p class="card-text">Browse and search all instruments available on the platform.</p>
+                    <a href="{% url 'mstock_trade:instrument_list' %}" class="btn btn-light btn-block font-weight-bold">
+                        <i class="fas fa-search"></i> View Instruments
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- Add more cards if needed -->
+    </div>
+
+    <div class="row mb-4">
+        <!-- Strategy Section -->
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-info"><i class="fas fa-lightbulb"></i> Strategies</h5>
+                    <div class="list-group">
+                        <a href="{% url 'mstock_trade:create_strategy' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-plus-circle"></i> Create Strategy
+                        </a>
+                        <a href="{% url 'mstock_trade:dashboard' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-list"></i> My Strategies
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Positions Section -->
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-warning"><i class="fas fa-clipboard-list"></i> Positions</h5>
+                    <div class="list-group">
+                        <a href="{% url 'mstock_trade:position_list' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-eye"></i> View Positions
+                        </a>
+                        <a href="{% url 'mstock_trade:convert_position' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-exchange-alt"></i> Convert Position
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Section -->
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-primary"><i class="fas fa-chart-bar"></i> Analytics</h5>
+                    <div class="list-group">
+                        <a href="{% url 'mstock_trade:intraday_chart' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-chart-line"></i> Intraday Chart
+                        </a>
+                        <a href="{% url 'mstock_trade:instrument_search' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-search"></i> Instrument Search
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <!-- Live Sensex Data Section -->
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-danger"><i class="fas fa-bolt"></i> Live Sensex Data</h5>
+                    <div class="list-group">
+                        <a href="{% url 'mstock_trade:live_sensex' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-chart-line"></i> Live Sensex Data
+                        </a>
+                        <!-- Add more analytics links here if needed -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

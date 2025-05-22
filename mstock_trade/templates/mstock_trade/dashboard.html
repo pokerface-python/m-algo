@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>Trading Dashboard</h2>
+                <div>
+                    <a href="{% url 'mstock_trade:access_info' %}" class="btn btn-info me-2">
+                        <i class="fas fa-key me-2"></i>Access Info
+                    </a>
+                    <a href="{% url 'mstock_trade:home' %}" class="btn btn-primary">
+                        <i class="fas fa-home me-2"></i>Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="messages mb-4">
+        rated
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">Access Token</h5>
+                    <div class="bg-light p-2 rounded">
+                        <code style="word-break: break-all;">{{ access_token }}</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Active Strategies</h5>
+                    <h2 class="card-text">{{ strategies.count }}</h2>
+                    <a href="{% url 'mstock_trade:create_strategy' %}" class="btn btn-light btn-sm mt-2">
+                        <i class="fas fa-plus me-2"></i>Create New
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Open Positions</h5>
+                    <h2 class="card-text">{{ positions.count }}</h2>
+                    <a href="{% url 'mstock_trade:position_list' %}" class="btn btn-light btn-sm mt-2">
+                        <i class="fas fa-list me-2"></i>View All
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Orders</h5>
+                    <h2 class="card-text">{{ orders.count }}</h2>
+                    <a href="{% url 'mstock_trade:order_book' %}" class="btn btn-light btn-sm mt-2">
+                        <i class="fas fa-book me-2"></i>View Orders
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Today's Trades</h5>
+                    <h2 class="card-text">{{ trades.count }}</h2>
+                    <a href="{% url 'mstock_trade:trade_history' %}" class="btn btn-light btn-sm mt-2">
+                        <i class="fas fa-history me-2"></i>View History
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Trades -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Recent Trades</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Strategy</th>
+                            <th>Symbol</th>
+                            <th>Type</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for trade in trades %}
+                        <tr>
+                            <td>{{ trade.strategy.name }}</td>
+                            <td>{{ trade.symbol }}</td>
+                            <td>{{ trade.trade_type }}</td>
+                            <td>{{ trade.quantity }}</td>
+                            <td>₹{{ trade.price }}</td>
+                            <td>
+                                <span class="badge bg-{{ trade.status|lower }}">
+                                    {{ trade.status }}
+                                </span>
+                            </td>
+                            <td>{{ trade.executed_at|date:"H:i:s" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">No recent trades</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Strategies -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Active Strategies</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for strategy in strategies %}
+                        <tr>
+                            <td>{{ strategy.name }}</td>
+                            <td>{{ strategy.description }}</td>
+                            <td>
+                                <span class="badge bg-{{ strategy.status|lower }}">
+                                    {{ strategy.status }}
+                                </span>
+                            </td>
+                            <td>{{ strategy.created_at|date:"Y-m-d H:i" }}</td>
+                            <td>
+                                <a href="{% url 'mstock_trade:execute_trade' %}?strategy_id={{ strategy.id }}" 
+                                   class="btn btn-sm btn-primary">
+                                    <i class="fas fa-play me-1"></i>Execute
+                                </a>
+                                <button class="btn btn-sm btn-danger" 
+                                        onclick="stopStrategy({{ strategy.id }})">
+                                    <i class="fas fa-stop me-1"></i>Stop
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">No active strategies</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+function stopStrategy(strategyId) {
+    if (confirm('Are you sure you want to stop this strategy?')) {
+        // Add your stop strategy logic here
+        console.log('Stopping strategy:', strategyId);
+    }
+}
+</script>
+{% endblock %}
+{% endblock %} 

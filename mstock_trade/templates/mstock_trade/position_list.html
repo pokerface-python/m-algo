@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Your Positions</h2>
+    
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>Exchange</th>
+                    <th>Quantity</th>
+                    <th>Average Price</th>
+                    <th>Product</th>
+                    <th>P&L</th>
+                    <th>M2M</th>
+                    <th>Unrealized P&L</th>
+                    <th>Realized P&L</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for position in positions %}
+                <tr>
+                    <td>{{ position.trading_symbol }}</td>
+                    <td>{{ position.exchange }}</td>
+                    <td>{{ position.quantity }}</td>
+                    <td>₹{{ position.average_price }}</td>
+                    <td>{{ position.product }}</td>
+                    <td class="{% if position.pnl >= 0 %}text-success{% else %}text-danger{% endif %}">₹{{ position.pnl }}</td>
+                    <td class="{% if position.m2m >= 0 %}text-success{% else %}text-danger{% endif %}">₹{{ position.m2m }}</td>
+                    <td class="{% if position.unrealized_pnl >= 0 %}text-success{% else %}text-danger{% endif %}">₹{{ position.unrealized_pnl }}</td>
+                    <td class="{% if position.realized_pnl >= 0 %}text-success{% else %}text-danger{% endif %}">₹{{ position.realized_pnl }}</td>
+                    <td>
+                        <a href="{% url 'mstock_trade:convert_position' %}">Convert Position</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="10" class="text-center">No positions found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

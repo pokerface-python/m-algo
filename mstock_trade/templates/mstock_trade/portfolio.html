@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Portfolio</h2>
+    
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Portfolio Summary -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Value</h5>
+                    <h3 class="card-text">₹{{ summary.total_value|floatformat:2 }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Investment</h5>
+                    <h3 class="card-text">₹{{ summary.total_investment|floatformat:2 }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total P&L</h5>
+                    <h3 class="card-text {% if summary.total_pnl >= 0 %}text-success{% else %}text-danger{% endif %}">
+                        ₹{{ summary.total_pnl|floatformat:2 }}
+                        ({{ summary.pnl_percentage|floatformat:2 }}%)
+                    </h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Day Change</h5>
+                    <h3 class="card-text {% if summary.total_day_change >= 0 %}text-success{% else %}text-danger{% endif %}">
+                        ₹{{ summary.total_day_change|floatformat:2 }}
+                        ({{ summary.day_change_percentage|floatformat:2 }}%)
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Holdings Table -->
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title mb-4">Holdings</h4>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Quantity</th>
+                            <th>Average Price</th>
+                            <th>Last Price</th>
+                            <th>Current Value</th>
+                            <th>P&L</th>
+                            <th>Day Change</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for holding in holdings %}
+                        <tr>
+                            <td>{{ holding.tradingsymbol }}</td>
+                            <td>{{ holding.quantity }}</td>
+                            <td>₹{{ holding.average_price }}</td>
+                            <td>₹{{ holding.last_price }}</td>
+                            <td>₹{{ holding.last_price|multiply:holding.quantity }}</td>
+                            <td class="{% if holding.pnl >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                ₹{{ holding.pnl }}
+                            </td>
+                            <td class="{% if holding.day_change >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                ₹{{ holding.day_change }}
+                                ({{ holding.day_change_percentage }}%)
+                            </td>
+                            <td>
+                                <a href="{% url 'holding_details' holding.tradingsymbol %}" class="btn btn-sm btn-info">Details</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center">No holdings found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
