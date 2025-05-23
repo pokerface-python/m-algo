@@ -34,7 +34,7 @@ DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = []
 
-
+ASGI_APPLICATION = 'algo_trading.asgi.application'
 # Application definition
 
 INSTALLED_APPS = [

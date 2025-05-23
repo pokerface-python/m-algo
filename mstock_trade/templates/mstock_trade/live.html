@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📈 Live Feed</title>
+    <style>
+        :root {
+            --primary-color: #1e3a8a;
+            --green: #10b981;
+            --red: #ef4444;
+            --light-bg: #f3f4f6;
+            --darker-bg: #e5e7eb;
+            --border: #d1d5db;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            padding: 20px;
+            margin: 0;
+            background-color: #f9fafb;
+            color: #111827;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            margin: 0;
+        }
+        
+        .status {
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-weight: 500;
+            display: inline-block;
+        }
+        
+        .status.connecting {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status.connected {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status.error {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+        
+        .stocks-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stock-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            overflow: hidden;
+        }
+        
+        .stock-header {
+            padding: 12px 16px;
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .stock-token {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+        
+        .stock-body {
+            padding: 16px;
+        }
+        
+        .price-large {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .price-change {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+        
+        .positive {
+            color: var(--green);
+        }
+        
+        .negative {
+            color: var(--red);
+        }
+        
+        .price-change.positive {
+            background-color: rgba(16, 185, 129, 0.1);
+        }
+        
+        .price-change.negative {
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+        
+        .stock-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--light-bg);
+        }
+        
+        .detail-label {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        .detail-value {
+            font-weight: 500;
+        }
+        
+        .tab-container {
+            margin-top: 16px;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .tab.active {
+            border-bottom: 2px solid var(--primary-color);
+            font-weight: 500;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 16px 0;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .depth-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .depth-table th {
+            text-align: left;
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: #6b7280;
+            padding: 6px 4px;
+        }
+        
+        .depth-table td {
+            padding: 6px 4px;
+            font-size: 0.9rem;
+        }
+        
+        .depth-bid td {
+            border-left: 3px solid var(--green);
+        }
+        
+        .depth-ask td {
+            border-left: 3px solid var(--red);
+        }
+        
+        .depth-table .price {
+            font-weight: 500;
+        }
+        
+        .flash {
+            animation: flash-animation 1s ease-out;
+        }
+        
+        @keyframes flash-animation {
+            0% { background-color: rgba(16, 185, 129, 0.2); }
+            100% { background-color: transparent; }
+        }
+        
+        .flash-red {
+            animation: flash-red-animation 1s ease-out;
+        }
+        
+        @keyframes flash-red-animation {
+            0% { background-color: rgba(239, 68, 68, 0.2); }
+            100% { background-color: transparent; }
+        }
+        
+        .last-update {
+            display: block;
+            text-align: right;
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-top: 10px;
+        }
+    </style>
+    
+</head>
+
+<body>
+    
+    <div class="header">
+        <h1>📈  Live Feed</h1>
+        <div id="connection-status" class="status connecting">Connecting to WebSocket...</div>
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <a href="/instruments/" style="text-decoration: none; color: var(--primary-color); font-weight: 500;">
+                🔍 View All Instruments
+            </a>
+            <div id="connection-status" class="status connecting">Connecting to WebSocket...</div>
+        </div>
+    </div>
+    
+    <div class="stocks-container" id="stocks-container">
+        <!-- Stock cards will be inserted here by JavaScript -->
+    </div>
+    
+    <script>
+        // DOM elements - ensure they're available
+        let status;
+        let stocksContainer;
+        let symbolMap = {};
+        
+        // Stock symbols mapper - would be better to get this from your backend
+      
+        // Store the last prices to track changes
+        const lastPrices = {};
+        
+        // Wait for DOM to be loaded before accessing elements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get DOM elements after page loads
+            status = document.getElementById('connection-status');
+            stocksContainer = document.getElementById('stocks-container');
+            
+            // Initialize WebSocket connection
+            initializeWebSocket();
+        });
+        
+        // Template for creating a new stock card
+        function createStockCardTemplate(token) {
+            const symbolInfo = symbolMap[token];
+            const symbol = symbolInfo ? symbolInfo.symbol : `Token ${token}`;
+            const exchange = symbolInfo ? symbolInfo.exchange : "Unknown";
+            
+            return `
+                <div class="stock-card" id="stock-${token}">
+                    <div class="stock-header">
+                        <div>${symbol} <span class="stock-token">${exchange}</span></div>
+                        <div class="stock-token">ID: ${token}</div>
+                    </div>
+                    <div class="stock-body">
+                        <div class="price-large" id="price-${token}">--</div>
+                        <div class="stock-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Open</span>
+                                <span class="detail-value" id="open-${token}">--</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Close</span>
+                                <span class="detail-value" id="close-${token}">--</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">High</span>
+                                <span class="detail-value" id="high-${token}">--</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Low</span>
+                                <span class="detail-value" id="low-${token}">--</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Volume</span>
+                                <span class="detail-value" id="volume-${token}">--</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Avg Price</span>
+                                <span class="detail-value" id="avg-${token}">--</span>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-container">
+                            <div class="tabs">
+                                <div class="tab active" onclick="switchTab(${token}, 'market-depth')">Market Depth</div>
+                                <div class="tab" onclick="switchTab(${token}, 'stats')">Stats</div>
+                            </div>
+                            
+                            <div class="tab-content active" id="market-depth-${token}">
+                                <table class="depth-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Price</th>
+                                            <th>Qty</th>
+                                            <th>Orders</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="asks-${token}">
+                                        <!-- Asks will be inserted here -->
+                                    </tbody>
+                                    <tbody id="bids-${token}">
+                                        <!-- Bids will be inserted here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="tab-content" id="stats-${token}">
+                                <div class="detail-item">
+                                    <span class="detail-label">Last Traded Qty</span>
+                                    <span class="detail-value" id="last-qty-${token}">--</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Total Buy Qty</span>
+                                    <span class="detail-value" id="buy-qty-${token}">--</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Total Sell Qty</span>
+                                    <span class="detail-value" id="sell-qty-${token}">--</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Open Interest</span>
+                                    <span class="detail-value" id="oi-${token}">--</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">OI High</span>
+                                    <span class="detail-value" id="oi-high-${token}">--</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">OI Low</span>
+                                    <span class="detail-value" id="oi-low-${token}">--</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <span class="last-update" id="last-update-${token}">Waiting for data...</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Function to switch between tabs
+        function switchTab(token, tabName) {
+            // Hide all tabs
+            document.querySelectorAll(`#stock-${token} .tab-content`).forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Deactivate all tab buttons
+            document.querySelectorAll(`#stock-${token} .tab`).forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Activate the selected tab
+            document.getElementById(`${tabName}-${token}`).classList.add('active');
+            
+            // Find and activate the clicked tab button
+            const tabs = document.querySelectorAll(`#stock-${token} .tab`);
+            for (let i = 0; i < tabs.length; i++) {
+                if (tabs[i].textContent.toLowerCase().includes(tabName.replace('-', ' '))) {
+                    tabs[i].classList.add('active');
+                    break;
+                }
+            }
+        }
+        
+        // Function to format large numbers
+        function formatNumber(num) {
+            if (num === undefined || num === null) return '--';
+            
+            if (num >= 10000000) {
+                return (num / 10000000).toFixed(2) + ' Cr';
+            } else if (num >= 100000) {
+                return (num / 100000).toFixed(2) + ' L';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'K';
+            }
+            return num.toLocaleString();
+        }
+        
+        // Function to format time
+        function formatTime(timestamp) {
+            if (!timestamp) return '';
+            const date = new Date(timestamp * 1000);
+            return date.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            });
+        }
+        
+        // Initialize WebSocket connection
+        function initializeWebSocket() {
+            // Create WebSocket using the current host
+            const socket = new WebSocket(`ws://${window.location.host}/ws/stocks/`);
+            
+            // WebSocket event handlers
+            socket.onopen = () => {
+                if (status) {
+                    status.textContent = "✅ Connected to WebSocket";
+                    status.className = "status connected";
+                }
+            };
+            
+            socket.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    
+                    // Handle connection status messages
+                    if (data.status) {
+                        if (status) {
+                            if (data.status === "connected") {
+                                status.textContent = "✅ " + data.message;
+                                status.className = "status connected";
+                                // Update symbol map from backend if provided
+                                  if (data.symbol_map) {
+                                    console.log("Received symbol map:", data.symbol_map);
+                                    symbolMap = data.symbol_map;
+                                }
+                            } else if (data.status === "error") {
+                                status.textContent = "⚠️ " + data.message;
+                                status.className = "status error";
+                            }
+                        }
+                        return;
+                    }
+                    
+                    // Process each quote packet
+                    if (Array.isArray(data)) {
+                        data.forEach(packet => {
+                            if (packet.type === "quote" || packet.type === "index"){
+                                updateStockCard(packet);
+                            }
+                        });
+                    }
+                } catch (error) {
+                    console.error("Error processing message:", error);
+                }
+            };
+            
+            socket.onclose = () => {
+                if (status) {
+                    status.textContent = "❌ WebSocket disconnected";
+                    status.className = "status error";
+                }
+            };
+            
+            socket.onerror = (err) => {
+                console.error("WebSocket error:", err);
+                if (status) {
+                    status.textContent = "⚠️ WebSocket error";
+                    status.className = "status error";
+                }
+            };
+        }
+        
+        // Function to update stock card data
+        function updateStockCard(data) {
+            if (!stocksContainer) return;
+            
+            const token = data.token;
+            
+            // Create a new card if it doesn't exist
+            if (!document.getElementById(`stock-${token}`)) {
+                stocksContainer.insertAdjacentHTML('beforeend', createStockCardTemplate(token));
+            }
+            
+            // Update the price with appropriate flashing
+            const priceElement = document.getElementById(`price-${token}`);
+            if (priceElement) {
+                priceElement.textContent = `₹${data.ltp.toFixed(2)}`;
+                
+                // Flash the price when it changes
+                if (lastPrices[token]) {
+                    if (data.ltp > lastPrices[token]) {
+                        priceElement.classList.remove('flash-red');
+                        priceElement.classList.add('flash');
+                        priceElement.classList.add('positive');
+                        priceElement.classList.remove('negative');
+                    } else if (data.ltp < lastPrices[token]) {
+                        priceElement.classList.remove('flash');
+                        priceElement.classList.add('flash-red');
+                        priceElement.classList.add('negative');
+                        priceElement.classList.remove('positive');
+                    }
+                }
+                lastPrices[token] = data.ltp;
+            }
+            
+            // Update other fields - check each element exists before updating
+            updateElementContent(`open-${token}`, `₹${data.open.toFixed(2)}`);
+            updateElementContent(`close-${token}`, `₹${data.close.toFixed(2)}`);
+            updateElementContent(`high-${token}`, `₹${data.high.toFixed(2)}`);
+            updateElementContent(`low-${token}`, `₹${data.low.toFixed(2)}`);
+            updateElementContent(`volume-${token}`, formatNumber(data.volume_traded_today || data.volume));
+            updateElementContent(`avg-${token}`, `₹${(data.avg_traded_price || data.avg_price || 0).toFixed(2)}`);
+            
+            // Update statistics tab data (only for quote type)
+            if (data.type === "quote") {
+                updateElementContent(`last-qty-${token}`, formatNumber(data.last_traded_qty));
+                updateElementContent(`buy-qty-${token}`, formatNumber(data.total_buy_qty));
+                updateElementContent(`sell-qty-${token}`, formatNumber(data.total_sell_qty));
+                updateElementContent(`oi-${token}`, formatNumber(data.open_interest));
+                updateElementContent(`oi-high-${token}`, formatNumber(data.open_interest_high));
+                updateElementContent(`oi-low-${token}`, formatNumber(data.open_interest_low));
+            }
+            // Update market depth if available
+            if (data.market_depth) {
+                // Update asks (sell orders)
+                const asksElement = document.getElementById(`asks-${token}`);
+                if (asksElement) {
+                    asksElement.innerHTML = '';
+                    
+                    // Sort asks from lowest to highest price
+                    const sortedAsks = [...data.market_depth.asks].sort((a, b) => a.price - b.price);
+                    
+                    sortedAsks.forEach(ask => {
+                        if (ask.price > 0) {
+                            const tr = document.createElement('tr');
+                            tr.className = 'depth-ask';
+                            tr.innerHTML = `
+                                <td class="price">₹${ask.price.toFixed(2)}</td>
+                                <td>${formatNumber(ask.quantity)}</td>
+                                <td>${ask.orders}</td>
+                            `;
+                            asksElement.appendChild(tr);
+                        }
+                    });
+                }
+                
+                // Update bids (buy orders)
+                const bidsElement = document.getElementById(`bids-${token}`);
+                if (bidsElement) {
+                    bidsElement.innerHTML = '';
+                    
+                    // Sort bids from highest to lowest price
+                    const sortedBids = [...data.market_depth.bids].sort((a, b) => b.price - a.price);
+                    
+                    sortedBids.forEach(bid => {
+                        if (bid.price > 0) {
+                            const tr = document.createElement('tr');
+                            tr.className = 'depth-bid';
+                            tr.innerHTML = `
+                                <td class="price">₹${bid.price.toFixed(2)}</td>
+                                <td>${formatNumber(bid.quantity)}</td>
+                                <td>${bid.orders}</td>
+                            `;
+                            bidsElement.appendChild(tr);
+                        }
+                    });
+                }
+            }
+            
+            // Update the last update timestamp
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            });
+            updateElementContent(`last-update-${token}`, `Last updated: ${timeStr}`);
+        }
+        
+        // Helper function to safely update element content
+        function updateElementContent(elementId, content) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = content;
+            }
+        }
+    </script>
+</body>
+</html>

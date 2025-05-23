@@ -36,21 +36,40 @@
         </label>
         
         <label class="filter-label">Symbol:
-            <input type="text" name="symbol" value="{{ request.GET.symbol }}" placeholder="Search symbol"/>
+            <input type="text" name="symbol" value="{{ request.GET.symbol }}" placeholder="Search symbol / token"/>
         </label>
+        <label class="filter-label">Price:
+            <input type="text" name="last_price" value="{{ request.GET.last_price }}" placeholder="Search last price"/>
+        </label>
+        
         <label class="filter-label">Lot Size:
             <input type="text" name="lot_size" value="{{ request.GET.lot_size }}" placeholder="Search lot size"/>
         </label>
-        <label class="filter-label">Option Type:
-            <select name="option_type" onchange="document.getElementById('filter-form').submit();">
-                <option value="" {% if not request.GET.option_type %}selected{% endif %}>All</option>
-                <option value="CE" {% if request.GET.option_type == "CE" %}selected{% endif %}>CE</option>
-                <option value="PE" {% if request.GET.option_type == "PE" %}selected{% endif %}>PE</option>
+        <label class="filter-label">Option:
+        <select name="option_type" onchange="document.getElementById('filter-form').submit();">
+            <option value="" {% if not request.GET.option_type %}selected{% endif %}>All</option>
+            <option value="CE" {% if request.GET.option_type == "CE" %}selected{% endif %}>CE</option>
+            <option value="PE" {% if request.GET.option_type == "PE" %}selected{% endif %}>PE</option>
+        </select>
+        </label>
+        <label class="filter-label">Instrument Type:
+            <select name="instrument_type" onchange="document.getElementById('filter-form').submit();">
+                <option value="" {% if not request.GET.instrument_type %}selected{% endif %}>All</option>
+                {% for typ in instrument_types %}
+                    <option value="{{ typ }}" {% if request.GET.instrument_type == typ %}selected{% endif %}>{{ typ }}</option>
+                {% endfor %}
             </select>
-        </label>        
+        </label>
+
         <button type="submit">Search</button>
     </form>
+    <div style="float: right;">
+    <a href="{% url 'mstock_trade:instrument_list' %}" class="btn btn-secondary" style="margin-left: 8px;">Reset</a>
+    </div>
     <br/>
+    <div style="float: right;">
+        Total Results: {{ total }}
+    </div>
     <table>
         <thead>
             <tr>
@@ -95,3 +114,4 @@
     </div>
 </body>
 </html>
+

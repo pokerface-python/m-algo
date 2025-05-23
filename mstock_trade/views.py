@@ -1077,6 +1077,61 @@ import csv
 
 from .models import Instrument
 
+
+def parse_date(date_str):
+    if not date_str:
+        return None
+    # Try to parse date in common formats, adjust as per your API
+    for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y"):
+        try:
+            return datetime.strptime(date_str, fmt).date()
+        except ValueError:
+            continue
+    return None
+
+def to_decimal(value):
+    try:
+        return float(value) if value else None
+    except Exception:
+        return None
+
+def to_int(value):
+    try:
+        return int(value) if value else None
+    except Exception:
+        return None
+
+def load_instruments(request):
+    api_service = MStockAPIService()
+    result = api_service.get_instrument_master()
+
+    if result['status'] != 'success':
+        messages.error(request, "Error on loading instruments")
+        # handle error as before
+        return redirect('mstock_trade:dashboard')
+
+    instruments_data = result['data']
+
+    for row in instruments_data:
+        # Update or create instrument by instrument_token
+        Instrument.objects.update_or_create(
+            instrument_token=row['instrument_token'],
+            defaults={
+                'exchange_token': row['exchange_token'],
+                'trading_symbol': row['tradingsymbol'],
+                'name': row['name'],
+                'last_price': to_decimal(row.get('last_price')),
+                'expiry': parse_date(row.get('expiry')),
+                'strike': to_decimal(row.get('strike')),
+                'tick_size': to_decimal(row.get('tick_size')),
+                'lot_size': to_int(row.get('lot_size')),
+                'instrument_type': row['instrument_type'],
+                'segment': row['segment'],
+                'exchange': row['exchange'],
+            }
+        )
+    return redirect('mstock_trade:instrument_list')
+
 # def load_instruments(request):
 #     with open('data/instrument.csv', newline='', encoding='utf-8') as csvfile:
 #         reader = csv.DictReader(csvfile)
@@ -1099,40 +1154,73 @@ from .models import Instrument
 #         Instrument.objects.bulk_create(instruments, batch_size=1000)  # Efficient bulk insert[5]
 #     return redirect('instrument_list')
 
-def load_instruments(request):
-    # existing_tokens = set(Instrument.objects.values_list('instrument_token', flat=True))
-    # instruments = []
+# def load_instruments(request):
+#     # existing_tokens = set(Instrument.objects.values_list('instrument_token', flat=True))
+#     # instruments = []
 
-    api_service = MStockAPIService(settings.MSTOCK_API_KEY, settings.MSTOCK_API_SECRET)
-    data = api_service.get_instrument_master()
-    breakpoint()
-    return
-    seen_tokens = set()
-    with open('data/instrument.csv', newline='', encoding='utf-8') as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            token = row['instrument_token']
-            if token in existing_tokens or token in seen_tokens:
-                continue  # Skip duplicates
-            seen_tokens.add(token)
-            instruments.append(Instrument(
-                instrument_token=token,
-                exchange_token=row['exchange_token'],
-                trading_symbol=row['tradingsymbol'],
-                name=row['name'],
-                last_price=row.get('last_price') or None,
-                expiry=row.get('expiry') or None,
-                strike=row.get('strike') or None,
-                tick_size=row.get('tick_size') or None,
-                lot_size=row.get('lot_size') or None,
-                instrument_type=row['instrument_type'],
-                segment=row['segment'],
-                exchange=row['exchange'],
-            ))
-    Instrument.objects.bulk_create(instruments, batch_size=1000)
-    return redirect('instrument_list')
+#     api_service = MStockAPIService()
+#     result = api_service.get_instrument_master()
+#     if result['status'] != 'success':
+#         # Handle error, e.g., show a message or redirect with error
+#         # For now, just print or log and redirect
+#         print(result.get('message', 'Unknown error'))
+#         return redirect('instrument_list')
+
+#     instruments_data = result['data']
+
+#     existing_tokens = set(Instrument.objects.values_list('instrument_token', flat=True))
+#     instruments = []
+#     seen_tokens = set()
+#     for row in instruments_data:
+#         token = row['instrument_token']
+#         if token in existing_tokens or token in seen_tokens:
+#             continue  # Skip duplicates
+#         seen_tokens.add(token)
+#         instruments.append(Instrument(
+#             instrument_token=token,
+#             exchange_token=row['exchange_token'],
+#             trading_symbol=row['tradingsymbol'],
+#             name=row['name'],
+#             last_price=row.get('last_price') or None,
+#             expiry=row.get('expiry') or None,
+#             strike=row.get('strike') or None,
+#             tick_size=row.get('tick_size') or None,
+#             lot_size=row.get('lot_size') or None,
+#             instrument_type=row['instrument_type'],
+#             segment=row['segment'],
+#             exchange=row['exchange'],
+#         ))
+#     Instrument.objects.bulk_create(instruments, batch_size=1000)
+#     return redirect('mstock_trade:instrument_list')
+
+    
+    # seen_tokens = set()
+    # with open('data/instrument.csv', newline='', encoding='utf-8') as csvfile:
+    #     reader = csv.DictReader(csvfile)
+    #     for row in reader:
+    #         token = row['instrument_token']
+    #         if token in existing_tokens or token in seen_tokens:
+    #             continue  # Skip duplicates
+    #         seen_tokens.add(token)
+    #         instruments.append(Instrument(
+    #             instrument_token=token,
+    #             exchange_token=row['exchange_token'],
+    #             trading_symbol=row['tradingsymbol'],
+    #             name=row['name'],
+    #             last_price=row.get('last_price') or None,
+    #             expiry=row.get('expiry') or None,
+    #             strike=row.get('strike') or None,
+    #             tick_size=row.get('tick_size') or None,
+    #             lot_size=row.get('lot_size') or None,
+    #             instrument_type=row['instrument_type'],
+    #             segment=row['segment'],
+    #             exchange=row['exchange'],
+    #         ))
+    # Instrument.objects.bulk_create(instruments, batch_size=1000)
+    # return redirect('instrument_list')
 
 from django.core.paginator import Paginator
+from django.db.models import Q
 def instrument_list(request):
     qs = Instrument.objects.all()
 
@@ -1145,13 +1233,27 @@ def instrument_list(request):
         qs = qs.filter(segment=segment)
     symbol = request.GET.get('symbol')
     if symbol:
-        qs = qs.filter(trading_symbol__icontains=symbol)
+        # qs = qs.filter(trading_symbol__icontains=symbol)
+        qs = qs.filter(
+            Q(trading_symbol__icontains=symbol) |
+            Q(instrument_token__icontains=symbol) |
+            Q(exchange_token__icontains=symbol)
+        )
+
     lot_size = request.GET.get('lot_size')
     if lot_size:
         qs = qs.filter(lot_size__icontains=lot_size)
     option_type = request.GET.get('option_type')
     if option_type:
         qs = qs.filter(instrument_type=option_type)
+
+    instrument_type = request.GET.get('instrument_type')
+    if instrument_type:
+        qs = qs.filter(instrument_type__icontains=instrument_type)
+
+    last_price = request.GET.get('last_price')
+    if last_price:
+        qs = qs.filter(last_price__icontains=last_price)
 
 
     # Sorting
@@ -1164,6 +1266,7 @@ def instrument_list(request):
     # For dropdowns: get unique exchanges and segments
     exchanges = Instrument.objects.order_by('exchange').values_list('exchange', flat=True).distinct()
     segments = Instrument.objects.order_by('segment').values_list('segment', flat=True).distinct()
+    instrument_types = Instrument.objects.order_by('instrument_type').values_list('instrument_type', flat=True).distinct()
 
     # Define columns for display and sorting
     columns = [
@@ -1185,12 +1288,14 @@ def instrument_list(request):
     paginator = Paginator(qs, 200)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-
+    total = qs.count()
     return render(request, 'mstock_trade/instruments.html', {
         'page_obj': page_obj,
         'exchanges': exchanges,
         'segments': segments,
         'columns': columns,
+        'instrument_types': instrument_types,
+        'total':total
     })
 
     # qs = Instrument.objects.all()
@@ -1258,3 +1363,6 @@ def instrument_list(request):
 #                 # Add more fields as required
 #             })
 #     return render(request, 'mstock_trade/instrument_master.html', {'instruments': instruments})
+
+def live_data(request):
+    return render(request,'mstock_trade/live.html')

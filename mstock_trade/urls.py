@@ -40,5 +40,6 @@ urlpatterns = [
     # path('instrument-master/', views.instrument_master_view, name='instrument_master'),
     path('load-instruments/', views.load_instruments, name='load_instruments'),
     path('instruments/', views.instrument_list, name='instrument_list'),
+    path("live-data/", views.live_data, name='live_data'),
 
 ] 
